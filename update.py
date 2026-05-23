@@ -142,6 +142,22 @@ def generate_html(categories, last_scored):
     with open(os.path.join(OUT_DIR, 'index.html'), 'w') as f:
         f.write(content)
 
+def generate_html_string(event_id):
+    global EVENT_ID
+    EVENT_ID = str(event_id)
+    data = fetch_results()
+    categories, last_scored = build_categories(data)
+    data_js = json.dumps(categories, ensure_ascii=False)
+    last_scored_js = json.dumps(last_scored, ensure_ascii=False) if last_scored else 'null'
+    now_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+    with open(os.path.join(SCRIPT_DIR, 'index.html'), 'r') as f:
+        content = f.read()
+    import re
+    content = re.sub(r'const CATEGORIES = \[.*?\];', f'const CATEGORIES = {data_js};', content, flags=re.DOTALL)
+    content = re.sub(r'const LAST_SCORED = .*?;', f'const LAST_SCORED = {last_scored_js};', content, flags=re.DOTALL)
+    content = re.sub(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}', now_str, content)
+    return content
+
 def run_once():
     print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] Fetching results for event {EVENT_ID}...")
     data = fetch_results()
