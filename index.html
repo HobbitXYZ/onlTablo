@@ -100,44 +100,43 @@
     /* On carpet banner */
     .on-carpet {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      flex-direction: column;
+      gap: 4px;
       background: rgba(18,32,62,0.92);
       border-top: 1px solid rgba(255,255,255,0.08);
       border-bottom: 1px solid rgba(255,255,255,0.08);
-      padding: 10px 20px;
-      font-size: 14px;
+      padding: 7px 16px;
     }
     .on-carpet-label {
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
       letter-spacing: 1px;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.65);
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 4px;
-      padding: 3px 8px;
-      white-space: nowrap;
+      color: rgba(255,255,255,0.5);
+    }
+    .on-carpet-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
     }
     .on-carpet-name {
       font-weight: 600;
       color: #fff;
-      font-size: 16px;
+      font-size: 14px;
+      flex: 1;
     }
-    .on-carpet-flag { font-size: 20px; }
+    .on-carpet-flag { font-size: 17px; }
     .on-carpet-score {
-      margin-left: auto;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       background: rgba(0,0,0,0.2);
       border-radius: 6px;
-      padding: 3px 10px;
-      font-size: 14px;
+      padding: 2px 8px;
+      font-size: 12px;
+      flex-shrink: 0;
     }
-    .on-carpet-score .app { color: rgba(255,255,255,0.5); font-size: 12px; }
+    .on-carpet-score .app { color: rgba(255,255,255,0.5); font-size: 11px; }
     .on-carpet-score .val { font-weight: 700; color: #fff; }
 
     /* Tabs */
@@ -200,10 +199,10 @@
     /* Result rows */
     .result-row {
       display: grid;
-      grid-template-columns: 30px 1fr auto;
+      grid-template-columns: 28px 1fr auto;
       align-items: center;
-      gap: 8px;
-      padding: 9px 10px;
+      gap: 6px;
+      padding: 8px 8px;
       border-radius: 10px;
       margin-bottom: 4px;
       background: rgba(255,255,255,0.07);
@@ -214,12 +213,18 @@
       font-size: 13px;
       font-weight: 700;
       color: rgba(255,255,255,0.5);
+      align-self: center;
     }
-    .mid-col { min-width: 0; }
+    .mid-col {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
     .athlete-row {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
     }
     .flag { font-size: 17px; line-height: 1; flex-shrink: 0; }
     .athlete-name {
@@ -239,8 +244,7 @@
     }
     .scores-row {
       display: flex;
-      gap: 5px;
-      margin-top: 3px;
+      gap: 4px;
       flex-wrap: wrap;
     }
     .score-pill {
@@ -257,6 +261,7 @@
     .right-col {
       text-align: right;
       flex-shrink: 0;
+      align-self: center;
     }
     .total-score {
       font-size: 19px;
@@ -385,11 +390,13 @@ function renderOnCarpet() {
   el.style.display = "flex";
   el.innerHTML = `
     <span class="on-carpet-label">${t('lastScored')}</span>
-    <span class="on-carpet-flag">${flag}</span>
-    <span class="on-carpet-name">${esc(LAST_SCORED.name)}</span>
-    <div class="on-carpet-score">
-      <span class="app">${esc(lastScoredLabel())}</span>
-      <span class="val">${Number(LAST_SCORED.score).toFixed(2)}</span>
+    <div class="on-carpet-row">
+      <span class="on-carpet-flag">${flag}</span>
+      <span class="on-carpet-name">${esc(LAST_SCORED.name)}</span>
+      <div class="on-carpet-score">
+        <span class="app">${esc(lastScoredLabel())}</span>
+        <span class="val">${Number(LAST_SCORED.score).toFixed(2)}</span>
+      </div>
     </div>`;
 }
 
@@ -479,8 +486,8 @@ function renderRow(app, scoreNames, maxTotal) {
       <div class="athlete-row">
         <span class="flag">${flag}</span>
         <span class="athlete-name">${esc(app.name)}</span>
-        <span class="country-code">${esc(app.team)}</span>
       </div>
+      <span class="country-code">${esc(app.team)}</span>
       <div class="scores-row">${scorePills}</div>
     </div>
     <div class="right-col">
