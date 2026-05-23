@@ -320,6 +320,10 @@ const FLAG_MAP = {
   INA:"🇮🇩",HKG:"🇭🇰",SYR:"🇸🇾",MGL:"🇲🇳",TPE:"🇹🇼",
   IND:"🇮🇳",LBN:"🇱🇧",MAS:"🇲🇾",TJK:"🇹🇯",
 };
+function getFlag(team) {
+  if (!/^[A-Z]{3}$/.test(team)) return '';
+  return FLAG_MAP[team] || '';
+}
 const LAST_SCORED = {"name": "Korea", "team": "KOR", "apparatus": "5balls", "apparatus_label": "5 balls", "score": 18, "cat_id": "172852"};
 
 const DISC_LABEL = {individual:"IND",group:"GRP"};
@@ -332,7 +336,7 @@ function esc(s) {
 function renderOnCarpet() {
   const el = document.getElementById("on-carpet");
   if (!LAST_SCORED) { el.style.display = "none"; return; }
-  const flag = FLAG_MAP[LAST_SCORED.team] || "🏳️";
+  const flag = getFlag(LAST_SCORED.team);
   el.style.display = "flex";
   el.innerHTML = `
     <span class="on-carpet-label">Last scored</span>
@@ -399,7 +403,7 @@ function renderPanel(cat, maxTotal) {
 
   if (pending.length) {
     const names = pending.map(a => {
-      const flag = FLAG_MAP[a.team] || "🏳️";
+      const flag = getFlag(a.team);
       return `${flag} ${esc(a.name)}`;
     }).join(" &nbsp;·&nbsp; ");
     html += `<div class="pending-row"><span class="pending-label">Awaiting score</span><span class="pending-names">${names}</span></div>`;
@@ -411,7 +415,7 @@ function renderPanel(cat, maxTotal) {
 
 function renderRow(app, scoreNames, maxTotal) {
   const r = app.rank;
-  const flag = FLAG_MAP[app.team] || "🏳️";
+  const flag = getFlag(app.team);
   const total = app.final_total;
 
   const scorePills = scoreNames.map(sn => {
