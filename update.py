@@ -50,9 +50,13 @@ def fetch_results():
 
 APPARATUS_EN = {
     'обруч': 'hoop', 'мяч': 'ball', 'булавы': 'clubs', 'лента': 'ribbon',
-    '5 мячей': '5 balls', '5 скакалок': '5 ropes',
+    '5 мячей': '5 balls', '5 скакалок': '5 ropes', '5 лент': '5 ribbons', '5 обручей': '5 hoops',
+    '5 пар булав': '5 pairs of clubs',
     '3 обруча, 2 пары булав': '3 hoops, 2 pairs of clubs',
     '2 обруча, 3 булавы': '2 hoops, 3 clubs',
+    '2 обруча, 3 мяча': '2 hoops, 3 balls',
+    '2 скакалки, 3 ленты': '2 ropes, 3 ribbons',
+    '3 скакалки, 2 обруча': '3 ropes, 2 hoops',
 }
 
 def build_categories(data):
@@ -69,7 +73,7 @@ def build_categories(data):
         app_names = {}
         if cat.get('score_names'):
             for sn in cat['score_names']:
-                sn['short_title'] = APPARATUS_EN.get(sn['short_title'], sn['short_title'])
+                sn['short_title'] = APPARATUS_EN.get(sn['title'], APPARATUS_EN.get(sn['short_title'], sn['short_title']))
                 app_names[sn['char_id']] = sn['short_title']
 
         ranked = sorted([a for a in apps if a['rank'] is not None], key=lambda x: x['rank'])
