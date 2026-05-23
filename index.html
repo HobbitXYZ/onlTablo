@@ -28,11 +28,27 @@
 
     /* Header */
     .hdr {
+      position: relative;
       padding: 14px 16px 12px;
       text-align: center;
       border-bottom: 1px solid rgba(255,255,255,0.12);
       background: #12203E;
     }
+    .lang-select {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      border-radius: 6px;
+      padding: 3px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+    }
+    .lang-select option { background: #12203E; color: #fff; }
     .logo-wrap {
       display: flex;
       justify-content: center;
@@ -295,10 +311,14 @@
   <div class="sticky-top">
     <header class="hdr">
       <div class="logo-wrap">
-        <img src="/logo.svg" alt="SportAround">
+        <img id="logo-img" src="/logo.svg" alt="SportAround">
       </div>
       <div class="event-name">Rhythmic Gymnastics Asian Championships</div>
       <div class="event-meta">22–25 May 2026</div>
+      <select class="lang-select" id="lang-select" onchange="setLang(this.value)">
+        <option value="en">EN</option>
+        <option value="ru">RU</option>
+      </select>
     </header>
     <div class="on-carpet" id="on-carpet" style="display:none"></div>
     <div class="tabs" id="tabs"></div>
@@ -324,6 +344,33 @@ function getFlag(team) {
   if (!/^[A-Z]{3}$/.test(team)) return '';
   return FLAG_MAP[team] || '';
 }
+const LANG_LABELS = {
+  en: { lastScored: 'Last scored', awaiting: 'Awaiting score', noResults: 'No results yet' },
+  ru: { lastScored: 'Последний результат', awaiting: 'Ожидают', noResults: 'Нет результатов' }
+};
+let lang = localStorage.getItem('lang') || (navigator.language.startsWith('ru') ? 'ru' : 'en');
+function t(key) { return LANG_LABELS[lang][key]; }
+function apparatusLabel(sn) { return lang === 'ru' ? sn.title : sn.short_title; }
+function lastScoredLabel() {
+  if (!LAST_SCORED) return '';
+  const cat = CATEGORIES.find(c => c.id === LAST_SCORED.cat_id);
+  if (!cat) return LAST_SCORED.apparatus_label;
+  const sn = cat.score_names.find(s => s.char_id === LAST_SCORED.apparatus);
+  return sn ? apparatusLabel(sn) : LAST_SCORED.apparatus_label;
+}
+function updateLogo() {
+  const img = document.getElementById('logo-img');
+  if (img) img.src = lang === 'ru' ? '/Logo_ru.png' : '/logo.svg';
+  const sel = document.getElementById('lang-select');
+  if (sel) sel.value = lang;
+}
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('lang', l);
+  updateLogo();
+  renderOnCarpet();
+  render();
+}
 const LAST_SCORED = {"name": "Korea", "team": "KOR", "apparatus": "5balls", "apparatus_label": "5 balls", "score": 18, "cat_id": "172852"};
 
 const DISC_LABEL = {individual:"IND",group:"GRP"};
@@ -339,11 +386,11 @@ function renderOnCarpet() {
   const flag = getFlag(LAST_SCORED.team);
   el.style.display = "flex";
   el.innerHTML = `
-    <span class="on-carpet-label">Last scored</span>
+    <span class="on-carpet-label">${t('lastScored')}</span>
     <span class="on-carpet-flag">${flag}</span>
     <span class="on-carpet-name">${esc(LAST_SCORED.name)}</span>
     <div class="on-carpet-score">
-      <span class="app">${esc(LAST_SCORED.apparatus_label)}</span>
+      <span class="app">${esc(lastScoredLabel())}</span>
       <span class="val">${Number(LAST_SCORED.score).toFixed(2)}</span>
     </div>`;
 }
@@ -396,7 +443,7 @@ function renderPanel(cat, maxTotal) {
   const pending = all.filter(a => !a.final_total || a.final_total === 0);
 
   if (!scored.length && !pending.length) {
-    return `<div class="empty-cat">No results yet</div>`;
+    return `<div class="empty-cat">${t('noResults')}</div>`;
   }
 
   let html = "";
@@ -406,7 +453,7 @@ function renderPanel(cat, maxTotal) {
       const flag = getFlag(a.team);
       return `${flag} ${esc(a.name)}`;
     }).join(" &nbsp;·&nbsp; ");
-    html += `<div class="pending-row"><span class="pending-label">Awaiting score</span><span class="pending-names">${names}</span></div>`;
+    html += `<div class="pending-row"><span class="pending-label">${t('awaiting')}</span><span class="pending-names">${names}</span></div>`;
   }
 
   html += scored.map(a => renderRow(a, cat.score_names, maxTotal)).join("");
@@ -423,7 +470,7 @@ function renderRow(app, scoreNames, maxTotal) {
     if (!s) return "";
     const label = s.is_dns?"DNS":s.is_dnf?"DNF":s.is_dsq?"DSQ":null;
     return `<div class="score-pill">
-      <span class="app">${esc(sn.short_title)}</span>
+      <span class="app">${esc(apparatusLabel(sn))}</span>
       <span class="val">${label || s.total.toFixed(2)}</span>
     </div>`;
   }).filter(Boolean).join("");
@@ -455,6 +502,7 @@ function switchTab(catId) {
   });
 }
 
+updateLogo();
 renderOnCarpet();
 render();
 </script>
