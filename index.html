@@ -484,7 +484,7 @@ function renderRow(app, scoreNames, maxTotal) {
     <div class="rank-num">${r}</div>
     <div class="mid-col">
       <div class="athlete-row">
-        <span class="flag">${flag}</span>
+        ${flag ? `<span class="flag">${flag}</span>` : ''}
         <span class="athlete-name">${esc(app.name)}</span>
       </div>
       <span class="country-code">${esc(app.team)}</span>
