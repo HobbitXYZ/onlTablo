@@ -35,5 +35,5 @@ jobs:
               git commit -m "scoreboard $(date -u +'%H:%M')"
               git push || true
             fi
-            [ $i -lt 5 ] && sleep 75
+            [ $i -lt 5 ] && sleep 75 || true
           done
