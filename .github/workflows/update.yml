@@ -28,7 +28,7 @@ jobs:
             if ! git diff --staged --quiet; then
               git commit -m "scoreboard $(date -u +'%H:%M')"
             fi
-            [ $i -lt 5 ] && sleep 57
+            [ $i -lt 5 ] && sleep 75
           done
           git pull --rebase origin master
           git push
