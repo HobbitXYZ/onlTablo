@@ -59,6 +59,7 @@ def build_categories(data):
     edges = data['data']['eventResultsBycategoryRG']['edges']
     categories = []
     latest_dt = None
+    earliest_dt = None
     last_scored = None
 
     for edge in edges:
@@ -87,16 +88,19 @@ def build_categories(data):
                 }
                 dt = s.get('dt_on_carpet')
                 score_val = s['final_total']
-                if dt and score_val and score_val > 0 and (latest_dt is None or dt > latest_dt):
-                    latest_dt = dt
-                    last_scored = {
-                        'name': app['competitor_name'].strip(),
-                        'team': app['team_name'] or '',
-                        'apparatus': apparatus,
-                        'apparatus_label': app_names.get(apparatus, apparatus),
-                        'score': score_val,
-                        'cat_id': cat['id'],
-                    }
+                if dt and score_val and score_val > 0:
+                    if latest_dt is None or dt > latest_dt:
+                        latest_dt = dt
+                        last_scored = {
+                            'name': app['competitor_name'].strip(),
+                            'team': app['team_name'] or '',
+                            'apparatus': apparatus,
+                            'apparatus_label': app_names.get(apparatus, apparatus),
+                            'score': score_val,
+                            'cat_id': cat['id'],
+                        }
+                    if earliest_dt is None or dt < earliest_dt:
+                        earliest_dt = dt
             competitors.append({
                 'rank': app['rank'],
                 'name': app['competitor_name'].strip(),
@@ -112,32 +116,24 @@ def build_categories(data):
             'competitors': competitors,
             'has_results': len(ranked) > 0
         })
-    return categories, last_scored
+    date_from = earliest_dt[:10] if earliest_dt else None
+    date_to = latest_dt[:10] if latest_dt else None
+    return categories, last_scored, date_from, date_to
 
-def generate_html(categories, last_scored):
+def _inject(content, categories, last_scored):
+    import re
     data_js = json.dumps(categories, ensure_ascii=False)
     last_scored_js = json.dumps(last_scored, ensure_ascii=False) if last_scored else 'null'
     now_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+    content = re.sub(r'const CATEGORIES = \[.*?\];', f'const CATEGORIES = {data_js};', content, flags=re.DOTALL)
+    content = re.sub(r'const LAST_SCORED = .*?;', f'const LAST_SCORED = {last_scored_js};', content, flags=re.DOTALL)
+    content = re.sub(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}', now_str, content)
+    return content
 
+def generate_html(categories, last_scored):
     with open(os.path.join(SCRIPT_DIR, 'index.html'), 'r') as f:
         content = f.read()
-
-    import re
-    content = re.sub(
-        r'const CATEGORIES = \[.*?\];',
-        f'const CATEGORIES = {data_js};',
-        content, flags=re.DOTALL
-    )
-    content = re.sub(
-        r'const LAST_SCORED = .*?;',
-        f'const LAST_SCORED = {last_scored_js};',
-        content, flags=re.DOTALL
-    )
-    content = re.sub(
-        r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}',
-        now_str, content
-    )
-
+    content = _inject(content, categories, last_scored)
     os.makedirs(OUT_DIR, exist_ok=True)
     with open(os.path.join(OUT_DIR, 'index.html'), 'w') as f:
         f.write(content)
@@ -146,22 +142,15 @@ def generate_html_string(event_id):
     global EVENT_ID
     EVENT_ID = str(event_id)
     data = fetch_results()
-    categories, last_scored = build_categories(data)
-    data_js = json.dumps(categories, ensure_ascii=False)
-    last_scored_js = json.dumps(last_scored, ensure_ascii=False) if last_scored else 'null'
-    now_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+    categories, last_scored, _, _ = build_categories(data)
     with open(os.path.join(SCRIPT_DIR, 'index.html'), 'r') as f:
         content = f.read()
-    import re
-    content = re.sub(r'const CATEGORIES = \[.*?\];', f'const CATEGORIES = {data_js};', content, flags=re.DOTALL)
-    content = re.sub(r'const LAST_SCORED = .*?;', f'const LAST_SCORED = {last_scored_js};', content, flags=re.DOTALL)
-    content = re.sub(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}', now_str, content)
-    return content
+    return _inject(content, categories, last_scored)
 
 def run_once():
     print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] Fetching results for event {EVENT_ID}...")
     data = fetch_results()
-    categories, last_scored = build_categories(data)
+    categories, last_scored, _, _ = build_categories(data)
     print(f"  {len(categories)} categories, last scored: {last_scored['name'] if last_scored else '—'}")
     generate_html(categories, last_scored)
     print(f"  index.html updated")
