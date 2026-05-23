@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """
 Fetches fresh results from sportvokrug.ru GraphQL API and regenerates index.html
-Run: python3 update.py
+Run: python3 update.py [event_id] [out_dir]
 """
-import json, datetime, urllib.request, urllib.error
+import json, datetime, urllib.request, urllib.error, os, sys
 
 GRAPHQL_URL = 'https://api.sportvokrug.ru/graphql'
-EVENT_ID = '15116'
+EVENT_ID = sys.argv[1] if len(sys.argv) > 1 else '15116'
+OUT_DIR = sys.argv[2] if len(sys.argv) > 2 else '.'
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 QUERY = """
   query EventResultsByCategoryRG($event_id: ID!, $show_empty_categories: Boolean!) {
@@ -117,7 +119,7 @@ def generate_html(categories, last_scored):
     last_scored_js = json.dumps(last_scored, ensure_ascii=False) if last_scored else 'null'
     now_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
 
-    with open('index.html', 'r') as f:
+    with open(os.path.join(SCRIPT_DIR, 'index.html'), 'r') as f:
         content = f.read()
 
     import re
@@ -136,7 +138,8 @@ def generate_html(categories, last_scored):
         now_str, content
     )
 
-    with open('index.html', 'w') as f:
+    os.makedirs(OUT_DIR, exist_ok=True)
+    with open(os.path.join(OUT_DIR, 'index.html'), 'w') as f:
         f.write(content)
 
 def run_once():
@@ -148,7 +151,7 @@ def run_once():
     print(f"  index.html updated")
 
 if __name__ == '__main__':
-    import sys, time
+    import time
     watch = '--watch' in sys.argv
 
     run_once()
