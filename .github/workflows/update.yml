@@ -23,11 +23,12 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
           for i in 1 2 3 4 5; do
-            python3 update.py
+            python3 update.py || true
             git add index.html
             if ! git diff --staged --quiet; then
               git commit -m "scoreboard $(date -u +'%H:%M')"
             fi
             [ $i -lt 5 ] && sleep 57
           done
+          git pull --rebase origin master
           git push
