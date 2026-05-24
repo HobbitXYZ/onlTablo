@@ -386,12 +386,10 @@ function esc(s) {
 function renderOnCarpet() {
   const el = document.getElementById("on-carpet");
   if (!LAST_SCORED) { el.style.display = "none"; return; }
-  const flag = getFlag(LAST_SCORED.team);
   el.style.display = "flex";
   el.innerHTML = `
     <span class="on-carpet-label">${t('lastScored')}</span>
     <div class="on-carpet-row">
-      <span class="on-carpet-flag">${flag}</span>
       <span class="on-carpet-name">${esc(LAST_SCORED.name)}</span>
       <div class="on-carpet-score">
         <span class="app">${esc(lastScoredLabel())}</span>
@@ -454,10 +452,7 @@ function renderPanel(cat, maxTotal) {
   let html = "";
 
   if (pending.length) {
-    const names = pending.map(a => {
-      const flag = getFlag(a.team);
-      return `${flag} ${esc(a.name)}`;
-    }).join(" &nbsp;·&nbsp; ");
+    const names = pending.map(a => esc(a.name)).join(" &nbsp;·&nbsp; ");
     html += `<div class="pending-row"><span class="pending-label">${t('awaiting')}</span><span class="pending-names">${names}</span></div>`;
   }
 
@@ -467,7 +462,6 @@ function renderPanel(cat, maxTotal) {
 
 function renderRow(app, scoreNames, maxTotal) {
   const r = app.rank;
-  const flag = getFlag(app.team);
   const total = app.final_total;
 
   const scorePills = scoreNames.map(sn => {
@@ -484,7 +478,6 @@ function renderRow(app, scoreNames, maxTotal) {
     <div class="rank-num">${r}</div>
     <div class="mid-col">
       <div class="athlete-row">
-        ${flag ? `<span class="flag">${flag}</span>` : ''}
         <span class="athlete-name">${esc(app.name)}</span>
       </div>
       <span class="country-code">${esc(app.team)}</span>
