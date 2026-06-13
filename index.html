@@ -445,6 +445,19 @@ function renderPanel(cat, maxTotal) {
   const scored = all.filter(a => a.final_total && a.final_total > 0);
   const pending = all.filter(a => !a.final_total || a.final_total === 0);
 
+  if (scored.length > 0 && scored.every(a => !a.rank)) {
+    scored.sort((a, b) => b.final_total - a.final_total);
+    let rankNum = 1;
+    scored.forEach((a, i) => {
+      if (i > 0 && a.final_total === scored[i - 1].final_total) {
+        a.rank = scored[i - 1].rank;
+      } else {
+        a.rank = rankNum;
+      }
+      rankNum++;
+    });
+  }
+
   if (!scored.length && !pending.length) {
     return `<div class="empty-cat">${t('noResults')}</div>`;
   }
